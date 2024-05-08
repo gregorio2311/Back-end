@@ -14,6 +14,14 @@ public interface AlumnoApiController {
 
     @GetMapping("/")
     ResponseEntity<List<Alumno>> getAlumnoList();
+
     @GetMapping("/{idAlumno}")
     ResponseEntity<Alumno> getAlumnoById(@PathVariable int idAlumno);
+
+    @PutMapping("/{idAlumno}")
+    ResponseEntity<?> updateAlumno(@PathVariable int idAlumno, @RequestBody Alumno alumnoActualizado);
+
+    @DeleteMapping("/{idAlumno}")
+    ResponseEntity<?> deleteAlumno(@PathVariable int idAlumno);
+
 }
