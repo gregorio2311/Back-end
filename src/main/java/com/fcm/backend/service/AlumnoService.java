@@ -10,9 +10,9 @@ public interface AlumnoService {
 
     void createAlumno(Alumno newAlumno);
     List<Alumno> getAlumnoList();
-    Alumno getAlumnoById(int id);
+    Optional<Alumno> getAlumnoById(int idAlumno) ;
 
     Optional<Alumno> updateAlumno(int idAlumno, Alumno alumnoActualizado);
 
-    boolean deleteAlumno(int idAlumno);
+    boolean deleteAlumno(int idAlumno) ;
 }

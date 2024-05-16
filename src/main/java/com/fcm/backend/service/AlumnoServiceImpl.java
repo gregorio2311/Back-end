@@ -1,52 +1,94 @@
 package com.fcm.backend.service;
 
 import com.fcm.backend.model.Alumno;
+import com.fcm.backend.repository.AlumnoRepository;
+import com.fcm.backend.utils.AlumnoMapper;
+import jakarta.persistence.EntityNotFoundException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.validation.ValidationException;
+import java.util.stream.Collectors;
+import java.sql.Date;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 @Service
 public class AlumnoServiceImpl implements AlumnoService {
-    private List<Alumno> alumnoList = new ArrayList<>();
+    List<Alumno> alumnoList = new ArrayList<>();
+
+    private AlumnoRepository alumnoRepository;
+
+    @Autowired
+    AlumnoServiceImpl(AlumnoRepository alumnoRepository){this.alumnoRepository = alumnoRepository;}
 
     @Override
     public List<Alumno> getAlumnoList(){
-        return alumnoList;
+        List<com.fcm.backend.repository.entity.Alumno> entityList = alumnoRepository.getAlumnoList();
+        List<Alumno> modelList = entityList.stream().map(AlumnoMapper::alumnoEntityToAlumnoModel).collect(Collectors.toList());
+        return modelList;
     }
 
-    @Override
+    public void validateAlumno(Alumno alumno) throws ValidationException {
+        if (alumno.getPrimerNombre() == null || alumno.getPrimerNombre().isEmpty() ||
+                alumno.getApellidoPat() == null || alumno.getApellidoPat().isEmpty() ||
+                alumno.getApellidoMat() == null || alumno.getApellidoMat().isEmpty() ||
+                alumno.getFechaNac() == null || alumno.getFechaNac().isEmpty() ||
+                alumno.getCurp() == null || alumno.getCurp().isEmpty() ||
+                alumno.getEmail() == null || alumno.getEmail().isEmpty()) {
+            throw new ValidationException("No fields should be empty.");
+        }
+
+        if (!alumno.getEmail().matches("[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,6}")) {
+            throw new ValidationException("Invalid email format.");
+        }
+
+        if (!alumno.getFechaNac().matches("\\d{4}-\\d{2}-\\d{2}")) {
+            throw new ValidationException("Invalid date format. Please use yyyy-mm-dd.");
+        }
+
+        if (!alumno.getCurp().matches("[A-Z]{4}\\d{6}[HM][A-Z]{5}[A-Z\\d]{2}")) {
+            throw new ValidationException("Invalid CURP format.");
+        }
+    }
+
     public void createAlumno(Alumno newAlumno) {
-        alumnoList.add(newAlumno);
+        validateAlumno(newAlumno);
+        alumnoRepository.insertar(AlumnoMapper.alumnoModelToAlumnoEntity(newAlumno));
     }
 
     @Override
-    public Alumno getAlumnoById(int id){
-        return alumnoList.get(id);
+    public Optional<Alumno> getAlumnoById(int idAlumno) {
+        com.fcm.backend.repository.entity.Alumno alumnoEntity = alumnoRepository.getAlumnoById(Long.valueOf(idAlumno));
+        if (alumnoEntity != null) {
+            Alumno alumnoModel = AlumnoMapper.alumnoEntityToAlumnoModel(alumnoEntity);
+            return Optional.of(alumnoModel);
+        } else {
+            return Optional.empty();
+        }
     }
 
     @Override
-    public Optional<Alumno> updateAlumno(int id, Alumno updatedAlumno) {
-        if (id >= 0 && id < alumnoList.size()) {
-            Alumno existingAlumno = alumnoList.get(id);
-            existingAlumno.setNombre(updatedAlumno.getNombre());
-            existingAlumno.setApellidoPat(updatedAlumno.getApellidoPat());
-            existingAlumno.setApellidoMat(updatedAlumno.getApellidoMat());
-            existingAlumno.setTelefono(updatedAlumno.getTelefono());
-            existingAlumno.setEmail(updatedAlumno.getEmail());
+    public Optional<Alumno> updateAlumno(int idAlumno, Alumno alumnoActualizado) {
+        com.fcm.backend.repository.entity.Alumno alumnoEntity = AlumnoMapper.alumnoModelToAlumnoEntity(alumnoActualizado);
+        com.fcm.backend.repository.entity.Alumno updatedEntity = alumnoRepository.updateAlumno(Long.valueOf(idAlumno), alumnoEntity);
 
-            return Optional.of(existingAlumno);
+        if (updatedEntity != null) {
+            Alumno updatedModel = AlumnoMapper.alumnoEntityToAlumnoModel(updatedEntity);
+            return Optional.of(updatedModel);
         }
         return Optional.empty();
     }
-
     @Override
-    public boolean deleteAlumno(int id) {
-        if (id >= 0 && id < alumnoList.size()) {
-            alumnoList.remove(id);
+    public boolean deleteAlumno(int idAlumno) {
+        com.fcm.backend.repository.entity.Alumno existingAlumno = alumnoRepository.getAlumnoById(Long.valueOf(idAlumno));
+        if (existingAlumno == null) {
+            return false;
+        } else {
+            alumnoRepository.deleteAlumno(Long.valueOf(idAlumno));
             return true;
         }
-        return false;
     }
+
 }

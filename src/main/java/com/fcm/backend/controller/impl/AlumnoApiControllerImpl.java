@@ -34,8 +34,11 @@ public class AlumnoApiControllerImpl implements AlumnoApiController {
 
     @Override
     public ResponseEntity<Alumno> getAlumnoById(@PathVariable int idAlumno){
-        return ResponseEntity.ok().body(alumnoService.getAlumnoById(idAlumno));
+        Optional<Alumno> alumno = alumnoService.getAlumnoById(idAlumno);
+        return alumno.map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
+
 
     @Override
     public ResponseEntity<?> updateAlumno(@PathVariable int idAlumno, @RequestBody Alumno alumnoActualizado) {
@@ -49,4 +52,6 @@ public class AlumnoApiControllerImpl implements AlumnoApiController {
         boolean deleted = alumnoService.deleteAlumno(idAlumno);
         return deleted ? ResponseEntity.ok().build() : ResponseEntity.notFound().build();
     }
+
+
 }

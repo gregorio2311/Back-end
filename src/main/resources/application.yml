@@ -1,0 +1,17 @@
+spring:
+  datasource:
+    url: jdbc:sqlserver://localhost:1433;databaseName=universidades;encrypt=false
+    username: SA
+    password: backend123.
+    driver-class-name: com.microsoft.sqlserver.jdbc.SQLServerDriver
+  jpa:
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.SQLServerDialect
+        naming.physical-strategy: org.hibernate.boot.model.naming.ImplicitNamingStrategyJpaCompliantImpl
+
+
+server:
+  port: 8080
+
+
