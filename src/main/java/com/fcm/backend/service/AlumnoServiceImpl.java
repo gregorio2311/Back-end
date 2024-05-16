@@ -7,6 +7,7 @@ import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.validation.ValidationException;
 import java.util.stream.Collectors;
 import java.sql.Date;
 import java.util.ArrayList;
@@ -29,9 +30,31 @@ public class AlumnoServiceImpl implements AlumnoService {
         return modelList;
     }
 
+    public void validateAlumno(Alumno alumno) throws ValidationException {
+        if (alumno.getPrimerNombre() == null || alumno.getPrimerNombre().isEmpty() ||
+                alumno.getApellidoPat() == null || alumno.getApellidoPat().isEmpty() ||
+                alumno.getApellidoMat() == null || alumno.getApellidoMat().isEmpty() ||
+                alumno.getFechaNac() == null || alumno.getFechaNac().isEmpty() ||
+                alumno.getCurp() == null || alumno.getCurp().isEmpty() ||
+                alumno.getEmail() == null || alumno.getEmail().isEmpty()) {
+            throw new ValidationException("No fields should be empty.");
+        }
+
+        if (!alumno.getEmail().matches("[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,6}")) {
+            throw new ValidationException("Invalid email format.");
+        }
+
+        if (!alumno.getFechaNac().matches("\\d{4}-\\d{2}-\\d{2}")) {
+            throw new ValidationException("Invalid date format. Please use yyyy-mm-dd.");
+        }
+
+        if (!alumno.getCurp().matches("[A-Z]{4}\\d{6}[HM][A-Z]{5}[A-Z\\d]{2}")) {
+            throw new ValidationException("Invalid CURP format.");
+        }
+    }
 
     public void createAlumno(Alumno newAlumno) {
-
+        validateAlumno(newAlumno);
         alumnoRepository.insertar(AlumnoMapper.alumnoModelToAlumnoEntity(newAlumno));
     }
 
